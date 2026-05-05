@@ -1,3 +1,3 @@
 # SoCoFinalProject
 
-Hello WOrld!
+Hello World!
