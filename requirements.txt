@@ -1,0 +1,15 @@
+# Social Computing Notebooks - Requirements
+notebook
+requests
+beautifulsoup4
+selenium
+matplotlib
+numpy
+pandas
+python-dotenv
+plotly
+scikit-learn
+# Social Computing Notebook 5 - Requirements
+pycountry
+# Social Computing Notebook 6 - Requirements
+seaborn
