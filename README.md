@@ -8,7 +8,6 @@
 **Reference:** Presentation: "Steam Game Stats & Reddit Hype" 
 ```⮕  The markdown was originally generated with Gemini based on our Research Proposal Presentation Slides: "Steam Game Stats & Reddit Hype"```
 
-
 ## 1. Motivation
 Understanding social media dynamics is valuable for game studios, publishers, and developers to:
 * Determine if a game's success is due to **long-term retention** or **short-term hype**.
