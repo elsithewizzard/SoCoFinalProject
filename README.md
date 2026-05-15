@@ -36,10 +36,45 @@ We are extracting the following features:
 * `peak_ccu`: Peak concurrent users
 
 ### Reddit Engagement Data (PRAW)
-Using the **Python Reddit API Wrapper (PRAW)** to scrape `r/gaming`:
-* **Target:** "Top" posts where the game name is featured in the title.
-* **Engagement Metric:** Sum of upvotes.
-* **Valence Metric:** Upvote/downvote ratio of the top 50 posts.
+Because Reddit's Data API now requires approval we were not able to aquire it thus we used Reddit's **public JSON endpoints** (`/r/<sub>/search.json`) instead of PRAW. The endpoint returns the same post fields PRAW would expose (`title`, `score`, `upvote_ratio`, `num_comments`, `created_utc`, `permalink`). We send a unique `User-Agent` on every request and sleep 1.1 s between calls, staying under Reddit's 60 req/min unauthenticated limit.
+
+* **Notebook:** `SoCoFinalProject/Reddit_Ewom.ipynb`
+* **Subreddit:** `r/gaming` only (`restrict_sr=1`).
+* **Sort & cap:** `sort=top, t=all, limit=100` — top 100 posts of all time per search.
+* **Date window:** posts whose `created_utc` falls between **2021-01-01** and **2025-12-31** are kept; everything else is discarded.
+* **Game name source:** `games_with_aliases.csv` (one row per unique game from `games_master_player_counts.csv`, deduplicated by `app_id` / `game_name`).
+
+#### Per-game search strategy
+
+For every game we issue **one Reddit search per name variant** and merge the results (deduplicated by post `id`):
+
+* The dataset name itself (after normalisation — `™ ® ©` stripped, curly quotes unified, `(2007)`-style parentheticals dropped, whitespace collapsed).
+* All aliases from the `aliases` column of `games_with_aliases.csv` (pipe-separated). The aliases column contains:
+  * **Rule-based alternates** — publisher prefixes stripped (`STAR WARS`, `Tom Clancy's`, `Marvel's`, `Disney's`, `LEGO`) and edition suffixes stripped (`Definitive Edition`, `Anniversary Edition`, `Game of the Year Edition`, etc.).
+  * **Hand-curated abbreviations** for ~100 well-known games (e.g. `KOTOR`, `R6`, `RDR2`, `FFXIV`, `BG3`, `CK3`, `MWO`, `OSRS`, `PvZ Battle for Neighborville`).
+
+A returned post is **kept** if its title contains any of the variant strings as a case-insensitive substring (after the same normalisation) AND if it falls inside the 2021-2025 window. We deliberately use substring matching rather than word-boundary regex to maximise recall on titles like `'Pacify' is terrifying` or `KOTOR remake update`.
+
+#### Metrics computed per game
+
+* **`engagement`** — sum of `score` (net upvotes) across all kept posts.
+* **`valence`** — mean `upvote_ratio` of the top 50 kept posts by `score`. Reflects how positively the game is received (1.0 = unanimous upvote, 0.5 = controversial).
+* **`n_posts`** — count of kept posts (sanity / coverage column).
+
+#### Output files
+
+Two CSVs land next to the notebook, both saved every 25 games and supporting resume:
+
+1. **`games_reddit.csv` — one row per game** 
+   * `app_id`, `game_name`, `peak_players` 
+   * `num_aliases`, `aliases` 
+   * `engagement`, `valence`, `n_posts`
+
+2. **`reddit_posts.csv` — one row per matched post** 
+   * `app_id`, `game_name` 
+   * `title`, `score`, `upvote_ratio`, `num_comments`
+   * `created_utc` 
+   * `permalink` 
 
 ## 4. Methods of Analysis
 **Assigned to: Elias & Alina**
