@@ -9,20 +9,28 @@
 ```⮕  The markdown was originally generated with Gemini based on our Research Proposal Presentation Slides: "Steam Game Stats & Reddit Hype"```
 
 ## 1. Motivation
-Understanding social media dynamics is valuable for game studios, publishers, and developers to:
+Social media reviews have surpassed traditional media and advertising in influencing consumer behavior (e.g., click-through rates and purchasing) (Mayopu et al., 2024).
+
+Understanding eWOM dynamics is valuable for game studios, publishers, and developers to:
 * Determine if a game's success is due to **long-term retention** or **short-term hype**.
 * Evaluate if "hype-focused" launch strategies or general marketing are worth the investment compared to traditional development.
-* Link public social signals to behavioral outcomes (e.g., playtime and sales).
+* Link public social signals (eWOM) to behavioral outcomes such as concurrent player counts and median playtime.
 
 ## 2. Research Framework
+
 ### Research Questions
-* **RQ1:** Are the number of user recommendations higher when engagement on Reddit is high?
-* **RQ2:** Does Reddit engagement correlate with actual time spent on the game?
+* **RQ1:** Is there a positive relationship between Reddit engagement volume (score) and a game's Peak concurrent users (`peak_ccu`) and community endorsement (`recommendations`) on Steam?
+* **RQ2:** Does Reddit engagement `valence` correlate more highly with actual time spent on the game than engagement `volume`?
+* **RQ3:** Does the correlation between Reddit hype and Steam player counts differ significantly between Free-to-Play (F2P) and Buy-to-Play (B2P) titles?
 
 ### Hypotheses
-* **H1:** There are more user recommendations when engagement on Reddit is high.
-* **H2:** For Buy-to-Play (B2P) games, median playtime is lower when Reddit engagement is high.
-* **H3:** Among high-engagement games, Free-to-Play (F2P) titles have lower median playtime than B2P titles.
+* **H1:** There is a significant positive Spearman correlation between total Reddit engagement (score) and Steam Peak CCU
+    * Search volumes and sales often mirror each other instantaneously: (Ruohonen & Hyrynsalmi, 2017).
+  
+* **H2:** Reddit Valence (upvote ratio) has a stronger positive correlation with Median Playtime than total Reddit engagement volume does.
+    * Review negativity and subjectivity (Valence) can have steeper impacts on consumer perception than volume alone (Zhang et al., 2019)  
+* **H3:** The correlation between Reddit engagement and Steam Recommendations is significantly stronger for B2P games than for F2P games.
+    * F2P and B2P games are usually analyzed separately, as there are significant differences in the game's engagement design, target audience and player behavior.  
 
 ## 3. Data Collection Methodology
 **Assigned to: Antonio & Jacob**
@@ -81,6 +89,16 @@ Two CSVs land next to the notebook, both saved every 25 games and supporting res
 
 We will employ three primary statistical methods:
 
-1. **Spearman Rank Correlation:** Chosen to handle outliers and right-skewed gaming data. We will test the correlation between upvotes and recommendations (H1) and upvotes and playtime (H2).
-2. **OLS Regression:** To measure the independent influence of variables (upvotes, valence, price) on playtime and player count.
+1. **Spearman Rank Correlation:** Chosen to handle outliers and right-skewed gaming data. Primary tool for testing H1, H2 & H3 because our data does not follow a normal distribution.
+2. **OLS Regression:** To measure the relative association of Engagement, Valence, and Price on Peak CCU. We will log-transform skewed variables to meet normality assumptions.
 3. **Mann-Whitney U-test:** To compare distributions between groups (F2P vs. B2P) without assuming normal distribution (H3).
+
+## References:
+Lee, S., Lee, S., & Baek, H. (2025). How does live streaming impact media content consumption? The effect of game live streaming on game players. Entertainment Computing, 52, 100802. https://doi.org/10.1016/j.entcom.2024.100802
+
+Mayopu, R. G., Wang, Y.-Y., & Chen, L.-S. (2024). Exploring the advertising elements of electronic word-of-mouth in social media: An example of game reviews. Multimedia Tools and Applications, 83(30), 74685–74709. https://doi.org/10.1007/s11042-024-18642-w
+
+Ruohonen, J., & Hyrynsalmi, S. (2017). Evaluating the use of internet search volumes for time series modeling of sales in the video game industry. Electronic Markets, 27(4), 351–370. https://doi.org/10.1007/s12525-016-0244-z
+
+Zhang, P., Lee, H.-M., Zhao, K., & Shah, V. (2019). An empirical investigation of eWOM and used video game trading: The moderation effects of product features. Decision Support Systems, 123, 113076. https://doi.org/10.1016/j.dss.2019.113076
+
