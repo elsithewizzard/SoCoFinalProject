@@ -91,7 +91,8 @@ We will employ three primary statistical methods:
 
 1. **Spearman Rank Correlation:** Chosen to handle outliers and right-skewed gaming data. Primary tool for testing H1, H2 & H3 because our data does not follow a normal distribution.
 2. **OLS Regression:** To measure the relative association of Engagement, Valence, and Price on Peak CCU. We will log-transform skewed variables to meet normality assumptions.
-3. **Mann-Whitney U-test:** To compare distributions between groups (F2P vs. B2P) without assuming normal distribution (H3).
+    * Lee et al. (2025) use OLS on a similar dataset to investigate the effect of game live streaming on game players.
+4. **Mann-Whitney U-test:** To compare distributions between groups (F2P vs. B2P) without assuming normal distribution (H3).
 
 ## References:
 Lee, S., Lee, S., & Baek, H. (2025). How does live streaming impact media content consumption? The effect of game live streaming on game players. Entertainment Computing, 52, 100802. https://doi.org/10.1016/j.entcom.2024.100802
