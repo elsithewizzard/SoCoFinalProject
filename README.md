@@ -35,8 +35,13 @@ Understanding eWOM dynamics is valuable for game studios, publishers, and develo
 ## 3. Data Collection Methodology
 **Assigned to: Antonio & Jacob**
 
-### Steam Data (Kaggle Dataset)
-We are extracting the following features:
+### Steam Data 
+The first step in aquiring our Steam Data was building an appropriate list of games. We used https://steamdb.info to find the most played games of 2021 in the following categories:
+
+Indie, Casual, Action, Adventure, Simulation, Strategy, RPG, Early Access, Free To Play, Sports, Racing, and Massively Multiplayer.
+
+After searching for these games, we downloaded the html for each search, giving us 12 seperate html files with thousands of games. Then we ran a script to take the top 500 games in each genre and add them to a combined "games list" CSV file .
+
 * `name`: Game title
 * `recommendations`: User recommendation count
 * `average_playtime_forever` & `median_playtime_forever`
