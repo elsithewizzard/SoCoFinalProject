@@ -13,3 +13,4 @@ scikit-learn
 pycountry
 # Social Computing Notebook 6 - Requirements
 seaborn
+dash
