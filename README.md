@@ -36,17 +36,20 @@ Understanding eWOM dynamics is valuable for game studios, publishers, and develo
 **Assigned to: Antonio & Jacob**
 
 ### Steam Data 
-The first step in aquiring our Steam Data was building an appropriate list of games. We used https://steamdb.info to find the most played games of 2021 in the following categories:
+The first step in aquiring our Steam Data was building an appropriate list of games. We used https://steamdb.info to find the most played games of 2021 in the following genres:
 
 Indie, Casual, Action, Adventure, Simulation, Strategy, RPG, Early Access, Free To Play, Sports, Racing, and Massively Multiplayer.
 
-After searching for these games, we downloaded the html for each search, giving us 12 seperate html files with thousands of games. Then we ran a script to take the top 500 games in each genre and add them to a combined "games list" CSV file .
+After searching for these games, we downloaded the html for each search, giving us 12 seperate html files with thousands of games. Then we ran a script to take the top 500 games in each genre and add them to a combined "games list" CSV file (games_master_2021.csv). The data that we pulled from the html included the following:
+* **Game Name** "game_name"
+* **App ID** "app_id"
+* **Genre** "tag"
+* **2021 Peak Player Count** "2021_peak_players"
 
-* `name`: Game title
-* `recommendations`: User recommendation count
-* `average_playtime_forever` & `median_playtime_forever`
-* `price`: To distinguish between F2P (0.0) and B2P games
-* `peak_ccu`: Peak concurrent users
+Then we ran a Selenium scraper to find monthly player counts for each of the games. The script directed to https://steamcharts.com, a publicly available database of Steam Games' concurrent user counts. We changed the path for each game in the game list accoding to their application ID number. For example, to pull Counter Strike 2's player data, we would go to the "link https://steamcharts.com/app/730". From there we would cycle through each game pulling the following information:
+* **Month** "Month"
+* **Average Concurrent Players for that month** "avg_players"
+* **Percent Gain in Players month over month** "
 
 ### Reddit Engagement Data (PRAW)
 Because Reddit's Data API now requires approval we were not able to aquire it thus we used Reddit's **public JSON endpoints** (`/r/<sub>/search.json`) instead of PRAW. The endpoint returns the same post fields PRAW would expose (`title`, `score`, `upvote_ratio`, `num_comments`, `created_utc`, `permalink`). We send a unique `User-Agent` on every request and sleep 1.1 s between calls, staying under Reddit's 60 req/min unauthenticated limit.
