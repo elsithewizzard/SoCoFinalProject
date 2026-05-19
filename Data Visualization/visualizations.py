@@ -10,17 +10,17 @@ file_path = os.path.join(basepath, "Analysis", "data", "games_clean_summary.csv"
 df = pd.read_csv(file_path)
 
 variable_dict = {
-    'peak_players': 'Historical Peak Concurrent Players',
+    'peak_players': 'Historical Peak Concurrent Players (Month)',
     'avg_players': 'Average Monthly Players', 
-    'engagement': 'Reddit Engagement Volume (Score)',
-    'n_posts': 'Number of Reddit Posts'
+    'engagement': 'r/gaming Engagement Volume (Score)',
+    'n_posts': 'Number of Reddit Posts (r/gaming)'
 }
 
 # Initializing App:
 app = Dash()
 
 app.layout = html.Div([
-    html.H3('Steam & Reddit Hype Dashboard'),
+    html.H3('Steam & r/gaming Hype Dashboard'),
     
     html.Label('Select graph type: '), 
     dcc.Dropdown(
@@ -35,10 +35,10 @@ app.layout = html.Div([
     html.Label('Select a variable: '),
     dcc.RadioItems(
         options =[
-            {'label': 'Historical Peak Concurrent Players', 'value': 'peak_players'},
+            {'label': 'Historical Peak Concurrent Players (Month)', 'value': 'peak_players'},
             {'label': 'Average Monthly Players', 'value': 'avg_players'},
-            {'label': 'Reddit Engagement Volume (Score)', 'value': 'engagement'},
-            {'label': 'Number of Reddit Posts', 'value': 'n_posts'},
+            {'label': 'r/gaming Engagement Volume (Score)', 'value': 'engagement'},
+            {'label': 'Number of Reddit Posts (r/gaming)', 'value': 'n_posts'},
         ],
         value = 'peak_players', 
         id = 'variable-selector',
@@ -79,7 +79,7 @@ app.layout = html.Div([
     html.Div(id='output-container-avg-players-range-slider'),
 
     # range-slider-engagement
-    html.Label('Select an Engagement Score range:'),
+    html.Label('Select an (r/gaming) Engagement Score range:'),
     dcc.RangeSlider(min=round(df['engagement'].min(),2),
                     max=round(df['engagement'].max(),2),
                     value =[round(df['engagement'].min(),2), round(df['engagement'].max(),2)], 
@@ -143,8 +143,8 @@ def update_graph(selected_variable, graph_type, slider_range_peak, slider_range_
                          x = 'engagement', 
                          y = selected_variable,
                          hover_name = 'game_name',
-                         labels={'engagement': 'Reddit Engagement Volume (Score)', selected_variable: ylab},
-                         title=f'Reddit Engagement vs {ylab}') 
+                         labels={'engagement': 'r/gaming Engagement Volume (Score)', selected_variable: ylab},
+                         title=f'r/gaming Engagement vs {ylab}') 
                          
     elif graph_type == 'histogram':
         # FIX: Show the distribution of the metric itself rather than charting by game name
