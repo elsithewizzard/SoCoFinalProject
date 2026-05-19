@@ -2,3 +2,5 @@ Steam Dataset/
 .venv/
 __pycache__/
 .DS_Store
+games_master_player_counts.csv
+MASTER_ALL_DATA.csv
