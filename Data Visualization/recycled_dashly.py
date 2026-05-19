@@ -1,135 +1,186 @@
 from dash import Dash, dcc, html, Input, Output
 import pandas as pd
-import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-# 1. DATA LOADING & MERGING
 
-df_reddit = pd.read_csv("games_reddit.csv") 
-df_steam = pd.read_csv("steam_data.csv") # The file with price, recommendations, and playtime
 
-# Merging on app_id
-df = pd.merge(df_reddit, df_steam, on='app_id', suffixes=('', '_steam'))
+df = pd.read_csv("meteo_wop_10min.csv")
+variable_dict = {
+    'RH10m': 'Relative humidity in %',
+    'p10m': 'Pressure in hPa at 10 m above ground', 
+    'p_NN10m': 'Pressure in hPa at 10m above sea level',
+    "T10m": "Temperature at 10m"
+    }
 
-# 2. PREPROCESSING FOR H1-H3
-def preprocess_gaming_data(df):
-    # Categorize Price for H3 (F2P vs B2P)
-    df['price_category'] = df['price'].apply(lambda x: 'F2P' if x == 0 else 'B2P')
-    
-    # Log transformation for skewed data (essential for gaming metrics!)
-    df['log_peak_ccu'] = np.log1p(df['peak_players'])
-    df['log_engagement'] = np.log1p(df['engagement'])
-    
-    return df
-
-df = preprocess_gaming_data(df)
-
-# Visual Encoding Maps
-price_color_map = {'F2P': 'rgba(0, 150, 255, 0.7)', 'B2P': 'rgba(255, 100, 0, 0.7)'}
-
-# Initializing App
-app = Dash(__name__)
+# Initializing App:
+app = Dash()
 
 app.layout = html.Div([
-    html.H3('Steam Stats & Reddit Hype Correlation Explorer'),
-    html.P('Interactive tool for analyzing the relationship between Reddit eWoM and Steam player behavior.'),
+    #page title
+    html.H3('Davos Weather Station'),
+    # Dropdown: Select graph
+    html.Label('Select graph type: '), 
+    dcc.Dropdown(
+        options = [
+            {'label': 'Scatter Plot', 'value': 'scatter'},
+            {'label': 'Histogram', 'value': 'histogram'},
+        ],
+        value = 'scatter', #start value
+        id = 'graph-selector'
+    ),
 
-    # Master Scatter Plot (Static Target for Lasso)
-    dcc.Graph(id='main-scatter-plot'),
+    # Radio Button: Select Y Variable 
+    html.Label('Select a variable: '),
+    dcc.RadioItems(
+        options =[
+            {'label': 'Relative humidity in %', 'value': 'RH10m'},
+            {'label': 'Pressure in hPa at 10 m above ground', 'value': 'p10m'},
+            {'label': 'Pressure in hPa at 10m above sea level', 'value': 'p_NN10m'},
+            {'label': 'Temperature at 10m', 'value': 'T10m'},
+        ],
+        value = 'RH10m', #start value
+        id = 'variable-selector',
+    ),
+    #checklist mean / median
+    dcc.Checklist(options = [
+        {'label' :'Mean', 'value': 'mean'},
+        {'label': 'Median', 'value': 'median'}
+        ],
+        value = ['mean'],
+        id = 'descr-stats-checklist'
+    ),
 
-    html.Div([
-        html.Label("Select X-Axis Metric:"),
-        dcc.Dropdown(
-            options=[
-                {'label': 'Reddit Engagement (Total Score)', 'value': 'log_engagement'},
-                {'label': 'Reddit Valence (Upvote Ratio)', 'value': 'valence'},
-                {'label': 'Number of Posts', 'value': 'n_posts'}
-            ],
-            value='log_engagement',
-            id='xaxis-dropdown'
-        ),
 
-        html.Label("Filter by Pricing Model (H3):"),
-        dcc.Dropdown(
-            options=[{'label': i, 'value': i} for i in ['All', 'F2P', 'B2P']],
-            value='All',
-            id='price-dropdown'
-        ),
-    ], style={'width': '30%', 'padding': '20px'}),
+    # graph :)) 
+    dcc.Graph(id='output-graph'),
 
-    # Interactive Plot
-    dcc.Graph(id='interactive-gaming-scatter')
-])
+    ################
+    # range-sliders
+    ################        
+    # range-slider-humidity
+    html.Label('Select a relative humidity (%) range:'),
+    dcc.RangeSlider(min=round(df['RH10m'].min(),2),
+                    max=round(df['RH10m'].max(),2),
+                    value =[round(df['RH10m'].min(),2), round(df['RH10m'].max(),2)], #default range
+                    id='humidity-range-slider',
+                          allowCross=False,
+                          updatemode='drag',
+                          tooltip={"placement": "bottom", "always_visible": True}),
 
-# CALLBACK 1: Update Interactive Plot
+    html.Div(id='output-container-humidity-range-slider'),
+
+    # range-slider-ground-level-pressure
+    html.Label('Select a pressure 10 m above ground level (hPa) range:'),
+    dcc.RangeSlider(min=round(df['p10m'].min(),2),
+                    max=round(df['p10m'].max(),2),
+                    value =[round(df['p10m'].min(),2), round(df['p10m'].max(),2)], #default range
+                    id='pressure-ground-range-slider',
+                          allowCross=False,
+                          updatemode='drag',
+                          tooltip={"placement": "bottom", "always_visible": True}),
+
+    html.Div(id='output-container-pressure-ground-range-slider'),
+
+    # range-slider-sea-level-pressure
+    html.Label('Select a pressure 10m above sea level (hPa) range:'),
+    dcc.RangeSlider(min=round(df['p_NN10m'].min(),2),
+                    max=round(df['p_NN10m'].max(),2),
+                    value =[round(df['p_NN10m'].min(),2), round(df['p_NN10m'].max(),2)], #default range
+                    id='pressure-sea-range-slider',
+                          allowCross=False,
+                          updatemode='drag',
+                          tooltip={"placement": "bottom", "always_visible": True}),
+
+    html.Div(id='output-container-pressure-sea-range-slider'),
+
+    #range slider temperature
+    html.Label('Select a temperature at 10m range:'),
+    dcc.RangeSlider(min=round(df['T10m'].min(),2),
+                    max=round(df['T10m'].max(),2),
+                    value =[round(df['T10m'].min(),2), round(df['T10m'].max(),2)], #default range
+                    id='temperature-range-slider',
+                          allowCross=False,
+                          updatemode='drag',
+                          tooltip={"placement": "bottom", "always_visible": True}),
+
+    html.Div(id='output-container-temperature-range-slider'),
+
+    ])
+
+
+#filter data with mask!
+def filter_df(df, slider_range_hum, slider_range_gro,slider_range_sea,slider_range_temp):
+    low_hum, high_hum = slider_range_hum
+    low_gro, high_gro = slider_range_gro
+    low_sea, high_sea = slider_range_sea
+    low_temp, high_temp = slider_range_temp
+    mask = (
+            (df['RH10m'] >= low_hum) & (df['RH10m'] <= high_hum) & \
+            (df['p10m'] >= low_gro) & (df['p10m'] <= high_gro) & \
+            (df['p_NN10m'] >= low_sea) & (df['p_NN10m'] <= high_sea) & \
+            (df['T10m'] >= low_temp) & (df['T10m'] <= high_temp) 
+            )
+    filtered_df = df[mask]
+    return filtered_df
+
+#app.callback decorator for interactive features
 @app.callback(
-    Output('interactive-gaming-scatter', 'figure'),
-    Input('xaxis-dropdown', 'value'),
-    Input('price-dropdown', 'value')
+    Output('output-graph', 'figure'), #is influenced by input1 (variable) & input2 (graph-type)
+    #graph type selector inputs
+    Input('variable-selector', 'value'),
+    Input('graph-selector','value'),
+
+    #slider inputs
+    Input('humidity-range-slider', 'value'),
+    Input('pressure-ground-range-slider', 'value'),
+    Input('pressure-sea-range-slider', 'value'),
+    Input('temperature-range-slider', 'value'),
+
+    # descriptive stats
+    Input('descr-stats-checklist', 'value')
 )
-def update_interactive_scatter(xaxis_col, price_filter):
-    dff = df.copy()
-    if price_filter != 'All':
-        dff = dff[dff['price_category'] == price_filter]
+#corresponding function: Updates graph type using callback elements
+def update_graph(selected_variable,graph_type, slider_range_hum, slider_range_gro,slider_range_sea,slider_range_temp,descr_stats):    
+    ylab = variable_dict[selected_variable] #label from the dictionary of variables
+    filtered_df = filter_df(df, slider_range_hum, slider_range_gro,slider_range_sea,slider_range_temp) 
 
-    fig = go.Figure()
+    if graph_type == 'scatter':
+        fig = px.scatter(filtered_df, 
+                         x = filtered_df['date'], 
+                         y = selected_variable,
+                         labels={'date':'Date', selected_variable: ylab}) 
+                         
+    elif graph_type == 'histogram':
+        fig = px.histogram(filtered_df,
+                           x='date',  
+                           y=selected_variable,  
+                           histfunc='avg', 
+                           title=f'Histogram of {ylab} over time',
+                           labels={'date': 'Date', selected_variable: ylab})
+        
+    if 'mean' in descr_stats:
+        mean_val = filtered_df[selected_variable].mean()
+        fig.add_trace(go.Scatter(x=filtered_df['date'], 
+                                 y=[mean_val]*len(filtered_df), #so the df dimensions match
+                                 mode='lines',
+                                 name='Mean',
+                                 line_color= 'red'
+                                 ))
+        
 
-    fig.add_trace(go.Scatter(
-        x=dff[xaxis_col],
-        y=dff['log_peak_ccu'],
-        mode='markers',
-        hovertext=dff['game_name'],
-        marker=dict(
-            color=[price_color_map[cat] for cat in dff['price_category']],
-            size=10,
-            line=dict(width=1, color='DarkSlateGrey')
-        ),
-        showlegend=False
-    ))
-
-    # Add dummy legend for F2P/B2P
-    for cat, color in price_color_map.items():
-        fig.add_trace(go.Scatter(x=[None], y=[None], mode='markers',
-                                 marker=dict(color=color), name=cat))
-
-    fig.update_layout(
-        title=f"Correlation: {xaxis_col} vs Peak CCU (Log Scale)",
-        xaxis_title=xaxis_col,
-        yaxis_title="Peak CCU (Log Scale)",
-        template='plotly_white',
-        dragmode='lasso'
-    )
+    if 'median' in descr_stats:
+        median_val = filtered_df[selected_variable].median()
+        fig.add_trace(go.Scatter(x=filtered_df['date'], 
+                                 y=[median_val]*len(filtered_df), #so the df dimensions match
+                                 mode='lines',
+                                 name='Median',
+                                 line_color= 'green'
+                                 ))       
     return fig
 
-# CALLBACK 2: Lasso Selection Logic
-@app.callback(
-    Output('main-scatter-plot', 'figure'),
-    Input('interactive-gaming-scatter', 'selectedData'),
-    Input('xaxis-dropdown', 'value')
-)
-def update_side_scatter(selected_data, xaxis_col):
-    # Base Plot (H1 default: Engagement vs CCU)
-    fig = px.scatter(df, x=xaxis_col, y="log_peak_ccu", 
-                     hover_name="game_name", color="price_category",
-                     color_discrete_map=price_color_map,
-                     title="Global Overview (High Opacity = Selected)")
-    
-    fig.update_traces(marker=dict(size=8, opacity=0.1)) # Default low opacity
 
-    if selected_data and selected_data.get('points'):
-        selected_names = [p['hovertext'] for p in selected_data['points']]
-        # Highlight selected points
-        fig.add_trace(go.Scatter(
-            x=df[df['game_name'].isin(selected_names)][xaxis_col],
-            y=df[df['game_name'].isin(selected_names)]['log_peak_ccu'],
-            mode='markers',
-            marker=dict(color='yellow', size=12, line=dict(width=2, color='black')),
-            name='Selected Games'
-        ))
 
-    fig.update_layout(template='plotly_white')
-    return fig
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug = True)
