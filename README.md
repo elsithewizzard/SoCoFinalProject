@@ -94,7 +94,57 @@ Two CSVs land next to the notebook, both saved every 25 games and supporting res
    * `created_utc` 
    * `permalink` 
 
-## 4. Methods of Analysis
+## 4. Data Preprocessing
+**Assigned to: Elias & Alina**
+
+This step prepares the raw dataset for testing our hypotheses by fixing layout issues and aligning the timelines between our two different data sources.
+
+### Data Merging & Formatting
+The raw data from the collection team was vertically stacked. We separated the Steam monthly player data and the Reddit metrics, then did an **Inner Join** on `app_id` to make sure we only keep games that have data from both platforms. 
+
+After the merge, we cleaned up the data types:
+* **`app_id`**: Converted to a string since it's an identification key, not a number for math.
+* **`game_name` & `genre`**: Converted to categories to make group operations faster.
+* **`peak_players` & `avg_players`**: Stripped out the commas (`","`) and converted them to floats.
+
+### Missing Valence Data
+About 54% of rows had a missing (`NaN`) value for `valence`. By grouping the data by whether valence was missing against the post counts, we found that:
+* Every row with missing valence had exactly `0.0` posts.
+* Every row with valence present had `1.0` or more posts.
+
+This confirmed our **"0 posts hypothesis"**: missing valence just means nobody talked about that game on r/gaming. We chose **not** to drop these NaNs because a game having players but zero Reddit hype is highly relevant information for our correlations! Dropping them would skew our results.
+
+### Aligning the Timeline (2021–2025)
+Our raw Steam dataset went all the way back to July 2012, but our Reddit data collection window was strictly bounded between January 1, 2021, and December 31, 2025. Leaving in older player peaks would mess up our correlation analysis. 
+
+We aligned the timeline by:
+1. Removing the rolling `"Last 30 Days"` rows to prevent overlapping data.
+2. Extracting the year from the month string.
+3. Filtering the dataset to strictly keep the years **2021 to 2025**, which brought us down to a clean 262,991 rows.
+
+### Aggregation (One Row Per Game)
+Since our hypotheses look at a game's overall footprint, we grouped the 262,991 monthly rows by `app_id` and `game_name` to compress the data down to 1,921 unique games. We aggregated the columns like this:
+* `genre`: Kept the `first` value (stays consistent).
+* `peak_players`: Taken the `max` value to grab the absolute highest peak concurrent players the game hit during the 5-year window (for H1).
+* `avg_players`: Taken the `mean` to get the overall average of the monthly averages (measures long-term player retention).
+* `engagement`, `valence`, `n_posts`: Kept the `first` value since these were lifetime totals from our previous merge.
+
+### Output Files
+We saved two separate CSV files into the `/data` folder:
+1. `games_clean_summary.csv`: One row per game (1,921 rows). This is our main file for Spearman correlations and OLS regressions.
+2. `games_clean_monthly_timeline_2026.csv`: The full monthly timeline (262,991 rows) kept safe in case we want to do a granular time-series case study later.
+
+
+### 4.2 Interactive Dashboard (Plotly Dash Prototype)
+To help explore our final dataset (`games_clean_summary.csv`), we adapted an interactive weather dashboard `Data Visualization/weather_dashboard.py` codebase from a previous course assignment (Course: Database Visualization Concepts). 
+
+#### Adaptation Adjustments
+* **Switching Axis Strategy**: The original class project plotted metrics against text categories. Instead of rendering 1,921 unique game names across the X-axis we redesigned the scatter plots to map continuous numeric metrics against each other (e.g., `engagement` on the X-axis vs. your chosen variable on the Y-axis), using hover text to display the individual game names safely.
+
+* **Dynamic Statistical Overlays**: The toggleable mean and median lines adapt on the fly. When you use the range sliders to exclude extreme mega-hits, the dashboard dynamically recalculates and updates the statistical markers to reveal hidden trends across smaller indie or niche titles.
+
+
+## 5. Methods of Analysis
 **Assigned to: Elias & Alina**
 
 We will employ three primary statistical methods:
@@ -103,6 +153,10 @@ We will employ three primary statistical methods:
 2. **OLS Regression:** To measure the relative association of Engagement, Valence, and Price on Peak CCU. We will log-transform skewed variables to meet normality assumptions.
     * Lee et al. (2025) use OLS on a similar dataset to investigate the effect of game live streaming on game players.
 4. **Mann-Whitney U-test:** To compare distributions between groups (F2P vs. B2P) without assuming normal distribution (H3).
+
+
+
+
 
 ## References:
 Lee, S., Lee, S., & Baek, H. (2025). How does live streaming impact media content consumption? The effect of game live streaming on game players. Entertainment Computing, 52, 100802. https://doi.org/10.1016/j.entcom.2024.100802
